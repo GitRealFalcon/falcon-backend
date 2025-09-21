@@ -10,7 +10,7 @@ const connectDB = async () => {
         // Try connecting to MongoDB using the URI from environment variables
         // and the database name defined in constants.js
         const connectionInstance = await mongoose.connect(
-            `${process.env.MONGODB_URI}/${DB_NAME}`
+            `${process.env.MONGODB_URI}${DB_NAME}`
         )
 
         // Log a success message with the host info of the connected DB
