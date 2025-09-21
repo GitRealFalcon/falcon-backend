@@ -1,9 +1,7 @@
 // Importing dotenv to load environment variables from .env file
 import dotenv from "dotenv"
-
 // Importing custom function to connect MongoDB database
 import connectDB from "./db/connectDB.js";
-
 // Importing the Express app instance
 import { app } from "./app.js";
 
