@@ -9,7 +9,7 @@ const asyncHandler = (requestHandler) => {
 }
 
 // Exporting so it can be reused in routes/controllers
-export { asyncHandler };
+export default asyncHandler ;
 
 
 // --------------------------------------------
