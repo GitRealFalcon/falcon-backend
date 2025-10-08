@@ -102,7 +102,8 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  
+  const { username ,email, password } = req.body;
 
   if (!(username || email)) {
     throw new ApiError(400, "username or password is required");
@@ -122,13 +123,13 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Password incorrect");
   }
 
-  const { refreshToken, accessToken } =
-    await generateAccessTokenAndRefereshToken(user._id);
-
-  const loggedInUser = User.findById(user._id).select(
-    "-password -refreshToken"
-  );
-
+  const {accessToken, refreshToken} = await generateAccessTokenAndRefereshToken(user._id);
+ 
+    const loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken"
+    );
+  
+    
   const options = {
     httpOnly: true,
     secure: true,
@@ -142,7 +143,7 @@ const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: loggedInUser,
+          userData: loggedInUser,
           accessToken,
           refreshToken,
         },
@@ -171,8 +172,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookei("accessToken", options)
-    .clearCookei("refreshToken", options)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "user logged Out"));
 });
 
