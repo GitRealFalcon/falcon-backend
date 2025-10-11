@@ -25,13 +25,26 @@ const userSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    avatar: {
-      type: String,
-      required:true
-    },
-    coverimage: {
-      type: String,
-    },
+    avatar: [
+     {
+      secure_url:{
+        type:String
+      },
+      public_id:{
+        type:String
+      }
+     }
+    ],
+    coverimage: [
+     {
+      secure_url:{
+        type:String
+      },
+      public_id:{
+        type:String
+      }
+     }
+    ],
     password: {
       type: String,
       required: [true, "Password is required"],
