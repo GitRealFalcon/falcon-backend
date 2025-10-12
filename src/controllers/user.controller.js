@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import { deleteCloudinary, uploadOnCloudinary } from "../cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
+import { Subscription } from "../models/subscriptions.model.js";
+import mongoose from "mongoose";
 
 const generateAccessTokenAndRefereshToken = async (userId) => {
   try {
@@ -146,8 +148,6 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  
-
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -217,19 +217,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: true,
     };
 
-    const { accessToken, newRefreshToken } =
+    const { accessToken, refreshToken } =
       await generateAccessTokenAndRefereshToken(user._id);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200,
           {
             accessToken,
-            refreshToken: newRefreshToken,
+            refreshToken,
           },
           "access token refreshed"
         )
@@ -306,7 +306,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     req.user?._id,
     {
       $set: {
-        avatar:[
+        avatar: [
           {
             secure_url: avatar.secure_url,
             public_id: avatar.public_id,
@@ -362,20 +362,177 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Cover Image change successfully"));
 });
 
-const deleteImage = asyncHandler(async (req, res) => {
-  const { publicId } = req.body;
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
 
-  if (!publicId) {
-    throw new ApiError(400, "Public Id required");
+  if (!username?.trim()) {
+    throw new ApiError(400, "username is missing");
   }
-  console.log(publicId);
 
-  const result = await deleteCloudinary(publicId);
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelSubscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullname: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+        _id: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length) {
+    throw new ApiError(400, "channel does not exists");
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, result, "image delete successfully"));
+    .json(
+      new ApiResponse(200, channel[0], "user channel fetched successfully")
+    );
 });
+
+const subscribeToChannel = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+  const subsriberId = req.user?._Id;
+
+  if (subsriberId.toString() === channelId.toString()) {
+    throw new ApiError(400, "You cannot subscribe to your own channel");
+  }
+
+  const channelExists = await User.findById(channelId);
+
+  if (!channelExists) {
+    throw new ApiError(404, "channel not found");
+  }
+
+  const existing = await Subscription.findOne({
+    channel: channelId,
+    subscriber: subsriberId,
+  });
+
+  if (existing) {
+    throw new ApiError(400, "already subscribed");
+  }
+
+  const subscription = await Subscription.create({
+    channel: channelId,
+    subscriber: subsriberId,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, subscription, "subscribed successfully"));
+});
+
+const unsubscribeToChannel = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+  const subscriberId = req.user?._id;
+
+  const unsubscribed = await Subscription.findByIdAndDelete({
+    channel: channelId,
+    subscriber: subscriberId,
+  });
+
+  if (!unsubscribed) {
+    throw new ApiError(404, "subscription not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "unsubscribed successfully"));
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user?._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields:{
+              owner:{
+                $first: "$owner"
+              }
+            }
+          }
+        ],
+      },
+    },
+  ]);
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,user[0].watchHistory, "watch hostory fetch successfully"))
+});
+
 export {
   registerUser,
   loginUser,
@@ -386,5 +543,8 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
-  deleteImage,
+  getUserChannelProfile,
+  subscribeToChannel,
+  unsubscribeToChannel,
+  getWatchHistory
 };

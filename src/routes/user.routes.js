@@ -1,12 +1,14 @@
 import { Router } from "express";
 import {
   changeCurrentPassword,
-  deleteImage,
   getCurrentUser,
+  getUserChannelProfile,
   loginUser,
   logoutUser,
   refreshAccessToken,
   registerUser,
+  subscribeToChannel,
+  unsubscribeToChannel,
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
@@ -35,10 +37,17 @@ router.route("/login").post(loginUser);
 //secured routes
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
-router.route("/update-cover-image").post(verifyJWT,updateUserCoverImage)
-router.route("/update-avatar-image").post(verifyJWT,updateUserAvatar)
-router.route("/update-account-detait").post(verifyJWT,updateAccountDetails)
-router.route("/get-current-user").post(verifyJWT,getCurrentUser)
-router.route("/change-current-password").post(verifyJWT,changeCurrentPassword)
+router
+  .route("/update-cover-image")
+  .post(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
+router
+  .route("/update-avatar-image")
+  .post(verifyJWT, upload.single("avatar"), updateUserAvatar);
+router.route("/update-account-detail").post(verifyJWT, updateAccountDetails);
+router.route("/get-current-user").get(verifyJWT, getCurrentUser);
+router.route("/change-current-password").post(verifyJWT, changeCurrentPassword);
+router.route("/:username/channel").get(getUserChannelProfile);
+router.route("/:channelId").post(verifyJWT, subscribeToChannel);
+router.route("/:channelId").delete(verifyJWT, unsubscribeToChannel);
 
 export default router;
