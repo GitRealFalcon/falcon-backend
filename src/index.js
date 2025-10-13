@@ -1,5 +1,5 @@
 // Importing dotenv to load environment variables from .env file
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 // Importing custom function to connect MongoDB database
 import connectDB from "./db/connectDB.js";
 // Importing the Express app instance
@@ -10,25 +10,24 @@ dotenv.config({ path: "./.env" });
 
 // Connect to the database
 connectDB()
-.then(()=>{
+  .then(() => {
     // If DB connection is successful, handle app events
 
     // Listen for any server-related errors
-    app.on("error",(error)=>{
-        console.log('error', error);
-        throw error
-    })
-    
-    // Start the server on given PORT or default 8000
-    app.listen(process.env.PORT || 8000, ()=>{
-        console.log(`Server is running port : ${process.env.PORT}`)
-    })
-})
-.catch((err)=>{
-    // If DB connection fails, log error
-    console.log('MONGODB Connection Failed', err);
-})
+    app.on("error", (error) => {
+      console.log("error", error);
+      throw error;
+    });
 
+    // Start the server on given PORT or default 8000
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`Server is running port : ${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    // If DB connection fails, log error
+    console.log("MONGODB Connection Failed", err);
+  });
 
 // --------------------------------------------
 // Below is the alternative approach (commented out)
@@ -44,7 +43,7 @@ connectDB()
 //         // Handle errors while starting the app
 //         app.on("error",(error)=>{
 //             console.log("ERROR", error);
-//             throw error  
+//             throw error
 //         })
 
 //         // Start listening on PORT
@@ -54,6 +53,6 @@ connectDB()
 
 //     } catch (error) {
 //         console.error("ERROR" ,error)
-//         throw error  
+//         throw error
 //     }
 // })()

@@ -169,8 +169,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
+      $unset: {
+        refreshToken: 1, //this remove the field from document
       },
     },
     {
@@ -409,6 +409,13 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
     },
     {
+      $addFields: {
+        avatar: {
+          $first: "$avatar.secure_url",
+        },
+      },
+    },
+    {
       $project: {
         fullname: 1,
         username: 1,
@@ -436,20 +443,24 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
 const subscribeToChannel = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
-  const subsriberId = req.user?._Id;
+  const subsriberId = req.user?._id;
+  console.log(subsriberId);
+  
 
-  if (subsriberId.toString() === channelId.toString()) {
+  if (req.user?.username.toString() === channelId.toString()) {
     throw new ApiError(400, "You cannot subscribe to your own channel");
   }
 
-  const channelExists = await User.findById(channelId);
+  const channelExists = await User.findOne({
+    username: channelId
+  });
 
   if (!channelExists) {
     throw new ApiError(404, "channel not found");
   }
 
   const existing = await Subscription.findOne({
-    channel: channelId,
+    channel: channelExists._id,
     subscriber: subsriberId,
   });
 
@@ -458,7 +469,7 @@ const subscribeToChannel = asyncHandler(async (req, res) => {
   }
 
   const subscription = await Subscription.create({
-    channel: channelId,
+    channel: channelExists._id,
     subscriber: subsriberId,
   });
 
@@ -471,8 +482,20 @@ const unsubscribeToChannel = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const subscriberId = req.user?._id;
 
-  const unsubscribed = await Subscription.findByIdAndDelete({
-    channel: channelId,
+  if (req.user?.username.toString() === channelId.toString()) {
+    throw new ApiError(200,"You cannot unsubscribe from yourself")
+  }
+
+  const channel = await User.findOne({
+    username: channelId
+  })
+
+  if (!channel) {
+    throw new ApiError(404,"channel not found")
+  }
+
+  const unsubscribed = await Subscription.findOneAndDelete({
+    channel: channel._id,
     subscriber: subscriberId,
   });
 
@@ -517,20 +540,26 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             },
           },
           {
-            $addFields:{
-              owner:{
-                $first: "$owner"
-              }
-            }
-          }
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
         ],
       },
     },
   ]);
 
   return res
-  .status(200)
-  .json(new ApiResponse(200,user[0].watchHistory, "watch hostory fetch successfully"))
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "watch hostory fetch successfully"
+      )
+    );
 });
 
 export {
@@ -546,5 +575,5 @@ export {
   getUserChannelProfile,
   subscribeToChannel,
   unsubscribeToChannel,
-  getWatchHistory
+  getWatchHistory,
 };
