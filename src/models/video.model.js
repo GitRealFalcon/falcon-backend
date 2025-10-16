@@ -3,14 +3,26 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const videoSchema = new mongoose.Schema(
   {
-    videoFile: {
-      type: String,
-      required: true,
-    },
-    thumbnail: {
-      type: String,
-      required: true,
-    },
+    videoFile: [
+      {
+        secure_url: {
+          type: String,
+        },
+        public_id: {
+          type: String,
+        },
+      },
+    ],
+    thumbnail: [
+      {
+        secure_url: {
+          type: String,
+        },
+        public_id: {
+          type: String,
+        },
+      },
+    ],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -330,8 +330,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   if (!coverImageLocalPath) {
     throw new ApiError(400, "Cover Image file is missing");
   }
-
+  console.log("before uploade");
+  
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  console.log(coverImage);
+  
 
   if (!coverImage.secure_url) {
     throw new ApiError(
@@ -406,15 +410,15 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             else: false,
           },
         },
-      },
-    },
-    {
-      $addFields: {
         avatar: {
           $first: "$avatar.secure_url",
         },
+        coverimage: {
+          $first: "$coverimage.secure_url",
+        },
       },
     },
+
     {
       $project: {
         fullname: 1,
@@ -445,14 +449,13 @@ const subscribeToChannel = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const subsriberId = req.user?._id;
   console.log(subsriberId);
-  
 
   if (req.user?.username.toString() === channelId.toString()) {
     throw new ApiError(400, "You cannot subscribe to your own channel");
   }
 
   const channelExists = await User.findOne({
-    username: channelId
+    username: channelId,
   });
 
   if (!channelExists) {
@@ -483,15 +486,15 @@ const unsubscribeToChannel = asyncHandler(async (req, res) => {
   const subscriberId = req.user?._id;
 
   if (req.user?.username.toString() === channelId.toString()) {
-    throw new ApiError(200,"You cannot unsubscribe from yourself")
+    throw new ApiError(200, "You cannot unsubscribe from yourself");
   }
 
   const channel = await User.findOne({
-    username: channelId
-  })
+    username: channelId,
+  });
 
   if (!channel) {
-    throw new ApiError(404,"channel not found")
+    throw new ApiError(404, "channel not found");
   }
 
   const unsubscribed = await Subscription.findOneAndDelete({

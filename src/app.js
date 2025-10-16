@@ -21,9 +21,11 @@ app.use(cookieParser())
 
 //routes import
 import userRouter from "./routes/user.routes.js"
+import videoRouter from "./routes/video.routes.js"
 
 //routes declaration
-app.use("/api/v1/users", userRouter) //http://localhost:8000/api/v1/users/register
+app.use("/api/v1/users", userRouter) //http://localhost:8000/api/v1/users/
+app.use("/api/v1/videos", videoRouter) //http://localhost:8000/api/v1/videos/
 
 // Export the app instance so it can be used in other files
 export { app }
