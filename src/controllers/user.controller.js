@@ -78,7 +78,7 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImage = await uploadOnCloudinary(coverImageLocalPath);
   }
 
-  if (!avatar.secure_url) {
+  if (!avatar?.secure_url) {
     throw new ApiError(400, "Avatar file is required 2");
   }
 
@@ -259,6 +259,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  console.log("get user")
+  
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
@@ -295,7 +297,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   }
 
   const avatar = await uploadOnCloudinary(localPath);
-  if (!avatar.secure_url) {
+  if (!avatar?.secure_url) {
     throw new ApiError(
       400,
       "somthing went wrong uploading avatar on cloudinary"

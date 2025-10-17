@@ -37,6 +37,7 @@ UserRouter.route("/login").post(loginUser);
 
 //secured routes
 UserRouter.route("/logout").post(verifyJWT, logoutUser);
+
 UserRouter.route("/refresh-token").post(refreshAccessToken);
 UserRouter
   .route("/update-cover-image")
