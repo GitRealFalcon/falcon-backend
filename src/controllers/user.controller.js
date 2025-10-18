@@ -259,7 +259,6 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  console.log("get user")
   
   return res
     .status(200)
@@ -332,11 +331,10 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   if (!coverImageLocalPath) {
     throw new ApiError(400, "Cover Image file is missing");
   }
-  console.log("before uploade");
+
   
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-  console.log(coverImage);
   
 
   if (!coverImage.secure_url) {
@@ -450,7 +448,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 const subscribeToChannel = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const subsriberId = req.user?._id;
-  console.log(subsriberId);
 
   if (req.user?.username.toString() === channelId.toString()) {
     throw new ApiError(400, "You cannot subscribe to your own channel");

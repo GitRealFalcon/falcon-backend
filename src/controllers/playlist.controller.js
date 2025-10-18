@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, discription, videoId } = req.body;
-  console.log("play list create controller");
   const userId = req.user?._id;
 
   if (!(name || discription)) {
@@ -133,7 +132,7 @@ const getPlaylist = asyncHandler(async (req, res) => {
   if (userId) {
     match.owner = new mongoose.Types.ObjectId(userId);
   }
-  console.log(match);
+
 
   const findPlaylist = await Playlist.aggregate([
     {

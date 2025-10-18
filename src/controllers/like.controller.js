@@ -79,7 +79,6 @@ const unLike = asyncHandler(async (req, res) => {
     }
   }
 
-  console.log(match);
   
 
   const deleteLike = await Like.findOneAndDelete(
