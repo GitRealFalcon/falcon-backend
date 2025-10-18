@@ -24,6 +24,8 @@ import userRouter from "./routes/user.routes.js"
 import videoRouter from "./routes/video.routes.js"
 import playlistRoutes from "./routes/playlist.routes.js"
 import CommentRouter from "./routes/comment.routes.js";
+import tweetRouter from "./routes/tweet.routes.js";
+import likeRouter from "./routes/like.routes.js";
 
 
 //routes declaration
@@ -31,6 +33,8 @@ app.use("/api/v1/users", userRouter) //http://localhost:8000/api/v1/users/
 app.use("/api/v1/videos", videoRouter) //http://localhost:8000/api/v1/videos/
 app.use("/api/v1/playlists", playlistRoutes) //http://localhost:8000/api/v1/playlists/
 app.use("/api/v1/comments", CommentRouter) //http://localhost:8000/api/v1/comments/
+app.use("/api/v1/tweets", tweetRouter) //http://localhost:8000/api/v1/tweets/
+app.use("/api/v1/likes", likeRouter) //http://localhost:8000/api/v1/likes/
 
 
 // Export the app instance so it can be used in other files

@@ -12,10 +12,8 @@ import {
 
 const videoRouter = Router();
 
-videoRouter.route("/get-videos").get(getAllVideos);
-videoRouter.route("/get-videos-id/:videoId").get(getVideoById);
-
-//secure routes
+videoRouter.route("/get-videos").get(verifyJWT,getAllVideos);
+videoRouter.route("/get-videos-id/:videoId").get(verifyJWT,getVideoById);
 videoRouter.route("/upload").post(  verifyJWT,upload.single("videoFile"), uploadVideo);
 videoRouter.route("/update/:videoId").patch( verifyJWT,upload.single("thumbnail"), updateVideo);
 videoRouter.route("/delete/:videoId").delete(verifyJWT, deleteVideo);

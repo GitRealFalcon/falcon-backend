@@ -96,6 +96,7 @@ const getComments = asyncHandler(async (req, res) => {
     sortType = "asc",
   } = req.body;
 
+  const loggedInUser = req.user?._id;
   page = parseInt(page);
   limit = parseInt(limit);
   sortType = sortType === "asc" ? 1 : -1;
@@ -108,9 +109,26 @@ const getComments = asyncHandler(async (req, res) => {
 
   match.video = new mongoose.Types.ObjectId(videoId);
 
-  const allCommentsAggregate = Comment.aggregate([
+  const allCommentsAggregate =
+   Comment.aggregate([
     {
       $match: match,
+    },
+     {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likeCount: { $size: "$likes" },
+        isLiked: {
+          $in: [new mongoose.Types.ObjectId(loggedInUser), "$likes.likeBy"],
+        },
+      },
     },
     {
       $lookup: {
@@ -129,6 +147,16 @@ const getComments = asyncHandler(async (req, res) => {
         ],
       },
     },
+    {
+      $project:{
+        content:1,
+        _id:1,
+        likeCount:1,
+        isLiked:1,
+        ownerDetails:1
+      }
+    },
+   
     {
       $sort: { [sortBy || "createdAt"]: sortType || -1 },
     },

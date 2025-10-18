@@ -12,7 +12,7 @@ const likeSchema = new mongoose.Schema(
       ref: "Comment",
     },
     tweet: {
-      type: mongoose.type.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "Tweet",
     },
     likeBy: {

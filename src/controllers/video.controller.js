@@ -16,6 +16,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     userId,
   } = req.query;
 
+  const loggedInUser = req.user?._id;
   // Convert to correct types
   page = parseInt(page);
   limit = parseInt(limit);
@@ -50,6 +51,20 @@ const getAllVideos = asyncHandler(async (req, res) => {
     },
     { $unwind: "$ownerDetails" },
     {
+      $lookup:{
+        from: "likes",
+        localField:"_id",
+        foreignField: "video",
+        as: "likes"
+      }
+
+    },{
+        $addFields:{
+          likeCount:{$size: "$likes"},
+          isLiked:{$in: [new mongoose.Types.ObjectId(loggedInUser),"$likes.likeBy"]}
+        }
+    },
+    {
       $project: {
         title: 1,
         description: 1,
@@ -62,6 +77,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
         "ownerDetails.username": 1,
         "ownerDetails.fullname": 1,
         "ownerDetails.avatar": 1,
+        likeCount:1,
+        isLiked:1
       },
     },
     { $sort: { [sortBy]: sortType } },
